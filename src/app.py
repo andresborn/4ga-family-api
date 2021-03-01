@@ -38,7 +38,6 @@ def get_all_members():
 def get_member(id):
 
     member = jackson_family.get_member(id)
-    print(member)
     response_body = {
         "name": f"{member['first_name']} {member['last_name']}",
         "id": member['id'],
@@ -51,6 +50,11 @@ def get_member(id):
 @app.route('/member', methods=['POST'])
 def create_member():
     member = request.json
+
+    check_if_exists = list(filter(lambda x: x['id'] == member['id'], jackson_family.get_all_members()))
+    if len(check_if_exists) > 0:
+        return jsonify({'error': 'Member already exists'}), 401
+
     jackson_family.add_member(member)
     response_body = {}
     return jsonify(response_body), 200
@@ -58,6 +62,10 @@ def create_member():
 # Delete Member
 @app.route('/member/<int:id>', methods=["DELETE"])
 def delete_member(id):
+
+    check_if_exists = list(filter(lambda member: member['id'] == id, jackson_family.get_all_members()))
+    if not (len(check_if_exists) > 0):
+        return jsonify({'error': 'Member to delete does not exist'}), 401
     
     jackson_family.delete_member(id)
     body = {"done": "True"} 
